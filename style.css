@@ -38,19 +38,19 @@ body {
     background-color:var(--color);
     border-radius:1000px;
 }
-.rhythmDot.state-hover, .rhythmDot:hover {
+.rhythmDot.state-pre, .rhythmDot:hover {
     transform:scale(1.1);
 }
-.rhythmDot.state-clicked, .rhythmDot:active {
+.rhythmDot.state-clicked {
     transform:scale(0.8);
     background-color:var(--color);
 }
-.rhythmDot.state-hover:after, .rhythmDot:hover:after {
+.rhythmDot.state-pre:after {
     transform:scale(1) translateZ(-1px);
     opacity:1;
     transition:0s;
 }
-.rhythmDot.state-clicked:after, .rhythmDot:active:after {
+.rhythmDot.state-clicked:after {
     transform:scale(1.5) translateZ(-1px);
     opacity:0;
     transition:0.2s;

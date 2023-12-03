@@ -36,7 +36,24 @@ function recentUnlikePress() {
 
     return recents;
 }
+function doInput(input) {
+    let elem = document.getElementById("rhythm" + input);
+    elem.classList.remove("state-pre");
+    elem.classList.remove("state-clicked");
 
+    elem.classList.add("state-pre");
+    setTimeout(()=>{
+        elem.classList.add("state-clicked");
+        setTimeout(()=>{
+            elem.classList.remove("state-pre");
+            elem.classList.remove("state-clicked");
+        },200)
+    },16)
+
+    inputTocks[input].pause();
+    inputTocks[input].currentTime = 0
+    inputTocks[input].play();
+}
 document.addEventListener("keydown",(e)=>{
     input = null;
     if (e.code == "KeyA" || e.code == "ArrowLeft") input = 1;
@@ -45,21 +62,6 @@ document.addEventListener("keydown",(e)=>{
     if (e.code == "Slash" || e.code == "KeyD" || e.code == "ArrowRight") input = 4;
 
     if (input) {
-        let elem = document.getElementById("rhythm" + input);
-        elem.classList.remove("state-hover");
-        elem.classList.remove("state-clicked");
-
-        elem.classList.add("state-hover");
-        setTimeout(()=>{
-            elem.classList.add("state-clicked");
-            setTimeout(()=>{
-                elem.classList.remove("state-hover");
-                elem.classList.remove("state-clicked");
-            },200)
-        },16)
-
-        inputTocks[input].pause();
-        inputTocks[input].currentTime = 0
-        inputTocks[input].play();
+        doInput(input);
     }
 });
