@@ -6,14 +6,18 @@ body {
     width:100vw;
     height:100vh;
     overflow:hidden;
+    background-color:rgb(17, 17, 36);
 }
 :root {
     --c-red:rgb(255, 44, 108);
     --c-blue:rgb(44, 171, 255);
+    --c-ora:rgb(255, 241, 44);
+    --c-gre:rgb(44, 255, 114);
 }
 * {
     font-family: 'Poppins', sans-serif;
     margin:0;
+    color:white;
 }
 .DotCenterer {
     display:flex;
@@ -26,7 +30,7 @@ body {
     --color:var(--c-red);
     width:15vh;
     height:15vh;
-    background-color:white;
+    background-color:rgb(17, 17, 36);
     border-radius:1000px;
     margin:1vh;
     transform:scale(1);

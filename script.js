@@ -26,8 +26,10 @@ var resourceCounts = {
     "blue":0
 }
 const colors = {
-    "red":"rgb(255, 44, 108)",
-    "blue":"rgb(44, 171, 255)"
+    "red":"rgba(255, 44, 108,0.5)",
+    "blue":"rgba(44, 171, 255,0.5)",
+    "ora":"rgba(255, 241, 44,0.5)",
+    "gre":"rgba(44, 255, 114,0.5)",
 }
 
 function performFrame() {
@@ -58,11 +60,11 @@ class Vector {
     static add(v1,v2) {
         let v1_planar = v1.toPoint();
         let v2_planar = v2.toPoint();
-
-        return new Point(
+        let added = new Point(
             v1_planar.x + v2_planar.x,
             v1_planar.y + v2_planar.y
-        ).toVector();
+        );
+        return added.toVector();
     }
 }
 class Point {
@@ -76,7 +78,7 @@ class Point {
     toVector() {
         return new Vector(
             (Math.sqrt(this.x * this.x + this.y * this.y)).toFixed(4) * 1.00,
-            ((360 - radToDeg(Math.atan(this.y / this.x)))).toFixed(4) * 1.00
+            ((radToDeg(Math.atan2(this.y, this.x)))).toFixed(4) * 1.00
         );
     }
     angleTowards(target) {
@@ -84,7 +86,6 @@ class Point {
         let deg = radToDeg(rad);
         deg -= 90;
         if (deg < 0) deg = 360 + deg;
-        console.log(deg);
         return deg;
     }
 }
@@ -99,13 +100,14 @@ class PhysicsBody {
         this.vel = options.vel || new Vector(0,0);
         this.rad = options.rad || 30; //randInt(100);
         this.type = options.type || "red";
+        this.innateNumber = randInt(1000);
     }
     applyForce(vec) {
         this.vel = Vector.add(this.vel,vec);
     }
 }
 class PhysicsBodyManager {
-    static globalMomentumPercentageLoss = 0.99;
+    static globalMomentumPercentageLoss = 0.94;
     static globalMomentumAbsoluteLoss = 3;
     static bodies = [];
     static canvas = {
@@ -142,28 +144,50 @@ class PhysicsBodyManager {
         PhysicsBodyManager.bodies.forEach((body)=>{
             // UPDATE DATA
             // --------- update position based on vel
-            console.log(body.vel.toPoint());
             body.pos.x += body.vel.toPoint().x * timeFactor;
             body.pos.y += body.vel.toPoint().y * timeFactor;
             // --------- update vel
             // mousedown (magnitude, direction)
             if (true) {
-                body.applyForce(new Vector(20,body.pos.angleTowards(new Point(mousePos.x,mousePos.y))));
-                // console.log(body.vel);
+                // body.vel = new Vector(20,body.pos.angleTowards(new Point(mousePos.x,mousePos.y)));
+                let angle = body.pos.angleTowards(new Point(mousePos.x,mousePos.y));
+                let force = new Vector(10 + randInt(body.innateNumber % 90),angle + (randInt(50) * (body.innateNumber % 2 ? -1 : 1)));
+                body.applyForce(force);
+
+                
+                // DRAW TOWARDS CURSOR VECTOR
+                // PhysicsBodyManager.canvas.ctx.beginPath();
+                // PhysicsBodyManager.canvas.ctx.lineWidth = 5;
+                // PhysicsBodyManager.canvas.ctx.strokeStyle = "rgb(255,150,150)";
+                // PhysicsBodyManager.canvas.ctx.moveTo(body.pos.x,body.pos.y);
+                // let forcePoint = force.toPoint();
+                // PhysicsBodyManager.canvas.ctx.lineTo(body.pos.x + forcePoint.x*50,body.pos.y + forcePoint.y*50);
+                // PhysicsBodyManager.canvas.ctx.stroke();
             }
             // friction (magnitude)
             // body.vel.mag = Math.max(0,body.vel.mag - this.globalMomentumAbsoluteLoss);
-            body.vel.mag *= this.globalMomentumPercentageLoss;
+            body.vel.mag *= this.globalMomentumPercentageLoss + (body.rad / 1000);
 
             
             // screen edge (magnitude, direction)
             // collisions
 
             // DRAW OBJECT
+            // PhysicsBodyManager.canvas.ctx.shadowBlur = 100;
+            // PhysicsBodyManager.canvas.ctx.shadowColor = colors[body.type];
             PhysicsBodyManager.canvas.ctx.beginPath();
-            PhysicsBodyManager.canvas.ctx.arc(body.pos.x, body.pos.y, body.rad, 0, 2 * Math.PI);
-            PhysicsBodyManager.canvas.ctx.fillStyle = body.type;
+            PhysicsBodyManager.canvas.ctx.arc(body.pos.x, body.pos.y, body.rad * (cycleNumber(FRAME,60)/120 + 0.5), 0, 2 * Math.PI);
+            PhysicsBodyManager.canvas.ctx.fillStyle = colors[body.type];
             PhysicsBodyManager.canvas.ctx.fill();
+
+            // DRAW INNATE MOVEMENT VECTOR
+            // PhysicsBodyManager.canvas.ctx.beginPath();
+            // PhysicsBodyManager.canvas.ctx.lineWidth = 5;
+            // PhysicsBodyManager.canvas.ctx.strokeStyle = "black";
+            // PhysicsBodyManager.canvas.ctx.moveTo(body.pos.x,body.pos.y);
+            // let vPoint = body.vel.toPoint();
+            // PhysicsBodyManager.canvas.ctx.lineTo(body.pos.x + vPoint.x,body.pos.y + vPoint.y);
+            // PhysicsBodyManager.canvas.ctx.stroke();
         });  
     }
 }
@@ -174,7 +198,7 @@ document.addEventListener("mousemove",(e)=>{
 
 function onload() {
     FRAME_TIME = Date.now();
-    mousePos = new Point(0,0);
+    mousePos = new Point(window.innerWidth / 2,window.innerHeight / 2);
 
     PhysicsBodyManager.init();
 
@@ -209,6 +233,13 @@ function doInput(input) {
 
     // Play audio
     audioInputDot(input);
+
+    PhysicsBodyManager.addPhysicsBody(new PhysicsBody({
+        pos:new Point(window.innerWidth/2 + (window.innerWidth/100 * ((input - 2)*12)),window.innerHeight/2),
+        vel:new Vector(randInt(3000) + 2000,randInt(360)),
+        type:["red","blue","ora","gre"][input - 1],
+        rad:15 + randInt(30)
+    }))
 
     // Update resource
     incrementResource(inputResources[input]);
@@ -261,4 +292,12 @@ function degToRad(deg) {
 }
 function getFrameLength() {
     return FRAME_TIME - LAST_FRAME_TIME;
+}
+
+function cycleNumber(index, cycleSize = 8) {
+    index += 8;
+    let raw = (index % (cycleSize*2)) - cycleSize;
+    raw = raw < 0 ? raw : raw + 1;
+    raw = Math.abs(raw);
+    return raw;
 }
